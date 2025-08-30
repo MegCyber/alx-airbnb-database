@@ -108,68 +108,68 @@ erDiagram
     USER ||--o{ PROPERTY : hosts
     USER ||--o{ BOOKING : makes
     PROPERTY ||--o{ BOOKING : has
-    BOOKING ||--o{ PAYMENT : includes
+    BOOKING ||--o{ PAYMENT : has
     USER ||--o{ REVIEW : writes
     PROPERTY ||--o{ REVIEW : receives
     USER ||--o{ MESSAGE : sends
     USER ||--o{ MESSAGE : receives
 
     USER {
-        UUID user_id PK
+        string user_id PK
         string first_name
         string last_name
-        string email UNIQUE
+        string email
         string password_hash
         string phone_number
-        enum role
-        timestamp created_at
+        string role
+        string created_at
     }
 
     PROPERTY {
-        UUID property_id PK
-        UUID host_id FK
+        string property_id PK
+        string host_id FK
         string name
-        text description
+        string description
         string location
-        decimal price_per_night
-        timestamp created_at
-        timestamp updated_at
+        string price_per_night
+        string created_at
+        string updated_at
     }
 
     BOOKING {
-        UUID booking_id PK
-        UUID property_id FK
-        UUID user_id FK
-        date start_date
-        date end_date
-        decimal total_price
-        enum status
-        timestamp created_at
+        string booking_id PK
+        string property_id FK
+        string user_id FK
+        string start_date
+        string end_date
+        string total_price
+        string status
+        string created_at
     }
 
     PAYMENT {
-        UUID payment_id PK
-        UUID booking_id FK
-        decimal amount
-        timestamp payment_date
-        enum payment_method
+        string payment_id PK
+        string booking_id FK
+        string amount
+        string payment_date
+        string payment_method
     }
 
     REVIEW {
-        UUID review_id PK
-        UUID property_id FK
-        UUID user_id FK
+        string review_id PK
+        string property_id FK
+        string user_id FK
         int rating
-        text comment
-        timestamp created_at
+        string comment
+        string created_at
     }
 
     MESSAGE {
-        UUID message_id PK
-        UUID sender_id FK
-        UUID recipient_id FK
-        text message_body
-        timestamp sent_at
+        string message_id PK
+        string sender_id FK
+        string recipient_id FK
+        string message_body
+        string sent_at
     }
 ```
 ---
