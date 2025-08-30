@@ -1,5 +1,5 @@
 
-# Property Rental System - Database Requirements
+# Database Schema ERD
 
 ## Entities and Attributes
 
@@ -175,5 +175,5 @@ erDiagram
 ---
 
 ## ER Diagram File
-The detailed ER diagram is also available in this repository as:  
-- `ER_diagram.drawio` (open with [Draw.io](https://app.diagrams.net))
+The detailed ER diagram is available on google drive link below:  
+- `Database Schema ERD` (open on [link](https://drive.google.com/file/d/1RlfwO7LJKc_1PbDejNjaAkjFHzSI42jP/view?usp=sharing))
