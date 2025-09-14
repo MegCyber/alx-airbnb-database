@@ -120,3 +120,170 @@ CREATE INDEX idx_user_email_lower ON User(LOWER(email));
 
 -- Functional index for case-insensitive location searches
 CREATE INDEX idx_property_location_lower ON Property(LOWER(location));
+
+-- PERFORMANCE MEASUREMENT WITH EXPLAIN ANALYZE
+-- Measure query performance before and after adding indexes
+
+-- ========================================
+-- PERFORMANCE TESTING: BEFORE INDEXES
+-- ========================================
+
+-- Test 1: User email lookup (before index)
+EXPLAIN ANALYZE 
+SELECT * FROM User 
+WHERE email = 'john.doe@example.com';
+
+-- Test 2: Booking date range query (before index)
+EXPLAIN ANALYZE 
+SELECT * FROM Booking 
+WHERE start_date BETWEEN '2024-06-01' AND '2024-06-30'
+AND status = 'confirmed';
+
+-- Test 3: Property location search (before index)
+EXPLAIN ANALYZE 
+SELECT * FROM Property 
+WHERE location = 'New York' 
+AND pricepernight <= 200;
+
+-- Test 4: Complex join query (before indexes)
+EXPLAIN ANALYZE 
+SELECT b.booking_id, b.start_date, b.total_price,
+       u.first_name, u.last_name,
+       p.name AS property_name, p.location
+FROM Booking b
+INNER JOIN User u ON b.user_id = u.user_id
+INNER JOIN Property p ON b.property_id = p.property_id
+WHERE b.status = 'confirmed'
+AND b.start_date >= '2024-01-01'
+ORDER BY b.start_date DESC;
+
+-- Test 5: Review aggregation query (before index)
+EXPLAIN ANALYZE 
+SELECT property_id, 
+       COUNT(*) as review_count,
+       AVG(rating) as avg_rating
+FROM Review 
+WHERE rating >= 4
+GROUP BY property_id
+HAVING COUNT(*) > 5;
+
+-- ========================================
+-- CREATE INDEXES (same as above)
+-- ========================================
+-- [Previous index creation statements remain the same]
+
+-- ========================================
+-- PERFORMANCE TESTING: AFTER INDEXES
+-- ========================================
+
+-- Test 1: User email lookup (after index)
+EXPLAIN ANALYZE 
+SELECT * FROM User 
+WHERE email = 'john.doe@example.com';
+
+-- Test 2: Booking date range query (after index)
+EXPLAIN ANALYZE 
+SELECT * FROM Booking 
+WHERE start_date BETWEEN '2024-06-01' AND '2024-06-30'
+AND status = 'confirmed';
+
+-- Test 3: Property location search (after index)
+EXPLAIN ANALYZE 
+SELECT * FROM Property 
+WHERE location = 'New York' 
+AND pricepernight <= 200;
+
+-- Test 4: Complex join query (after indexes)
+EXPLAIN ANALYZE 
+SELECT b.booking_id, b.start_date, b.total_price,
+       u.first_name, u.last_name,
+       p.name AS property_name, p.location
+FROM Booking b
+INNER JOIN User u ON b.user_id = u.user_id
+INNER JOIN Property p ON b.property_id = p.property_id
+WHERE b.status = 'confirmed'
+AND b.start_date >= '2024-01-01'
+ORDER BY b.start_date DESC;
+
+-- Test 5: Review aggregation query (after index)
+EXPLAIN ANALYZE 
+SELECT property_id, 
+       COUNT(*) as review_count,
+       AVG(rating) as avg_rating
+FROM Review 
+WHERE rating >= 4
+GROUP BY property_id
+HAVING COUNT(*) > 5;
+
+-- ========================================
+-- ADDITIONAL PERFORMANCE ANALYSIS
+-- ========================================
+
+-- Test index usage on composite queries
+EXPLAIN ANALYZE 
+SELECT * FROM Booking 
+WHERE user_id = 'some-user-uuid'
+AND start_date >= '2024-09-01'
+ORDER BY start_date DESC;
+
+-- Test partial index effectiveness
+EXPLAIN ANALYZE 
+SELECT * FROM Booking 
+WHERE status = 'confirmed'
+AND start_date BETWEEN '2024-08-01' AND '2024-08-31';
+
+-- Test functional index performance
+EXPLAIN ANALYZE 
+SELECT * FROM User 
+WHERE LOWER(email) = LOWER('John.Doe@Example.com');
+
+-- Test property location and price filtering
+EXPLAIN ANALYZE 
+SELECT * FROM Property 
+WHERE location = 'Los Angeles'
+AND pricepernight BETWEEN 100 AND 300;
+
+-- ========================================
+-- INDEX USAGE MONITORING QUERIES
+-- ========================================
+
+-- Check index usage statistics (PostgreSQL specific)
+SELECT 
+    schemaname,
+    tablename,
+    indexname,
+    idx_tup_read,
+    idx_tup_fetch,
+    idx_tup_read + idx_tup_fetch as total_index_usage
+FROM 
+    pg_stat_user_indexes
+WHERE schemaname = 'public'
+ORDER BY 
+    total_index_usage DESC;
+
+-- Check for unused indexes
+SELECT 
+    schemaname,
+    tablename,
+    indexname,
+    idx_scan as scans,
+    pg_size_pretty(pg_relation_size(indexrelid)) as size
+FROM pg_stat_user_indexes
+WHERE idx_scan < 10
+AND schemaname = 'public'
+ORDER BY pg_relation_size(indexrelid) DESC;
+
+-- Check table and index sizes
+SELECT 
+    tablename,
+    pg_size_pretty(pg_total_relation_size(tablename::regclass)) AS total_size,
+    pg_size_pretty(pg_relation_size(tablename::regclass)) AS table_size,
+    pg_size_pretty(pg_indexes_size(tablename::regclass)) AS indexes_size,
+    ROUND(100.0 * pg_indexes_size(tablename::regclass) / pg_total_relation_size(tablename::regclass), 2) AS index_ratio
+FROM 
+    pg_tables
+WHERE 
+    schemaname = 'public'
+ORDER BY 
+    pg_total_relation_size(tablename::regclass) DESC;
+
